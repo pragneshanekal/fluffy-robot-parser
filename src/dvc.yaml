@@ -1,0 +1,84 @@
+stages:
+  extract_basic_content:
+    cmd: python src/stages/extract_basic_content.py
+    deps:
+      - src/stages/extract_basic_content.py
+      - data/raw/ten-k-2024.pdf
+    outs:
+      - data/intermediate/basic_content.json
+    params:
+      - extract.basic_patterns
+
+  extract_tables_images:
+    cmd: python src/stages/extract_tables_images.py
+    deps:
+      - src/stages/extract_tables_images.py
+      - data/raw/ten-k-2024.pdf
+    outs:
+      - data/intermediate/tables.json
+      - data/intermediate/images.json
+    params:
+      - extract.table_settings
+
+  classify_financial_sections:
+    cmd: python src/stages/classify_financial_sections.py
+    deps:
+      - src/stages/classify_financial_sections.py
+      - data/intermediate/basic_content.json
+    outs:
+      - data/intermediate/financial_sections.json
+    params:
+      - classification.section_patterns
+
+  process_financial_statements:
+    cmd: python src/stages/process_financial_statements.py
+    deps:
+      - src/stages/process_financial_statements.py
+      - data/intermediate/tables.json
+    outs:
+      - data/intermediate/financial_statements.json
+      - data/processed/statements/
+
+  extract_exhibits:
+    cmd: python src/stages/extract_exhibits.py
+    deps:
+      - src/stages/extract_exhibits.py
+      - data/intermediate/basic_content.json
+    outs:
+      - data/intermediate/exhibits.json
+    params:
+      - classification.exhibit_patterns
+
+  extract_metrics:
+    cmd: python src/stages/extract_metrics.py
+    deps:
+      - src/stages/extract_metrics.py
+      - data/intermediate/basic_content.json
+    outs:
+      - data/intermediate/financial_metrics.json
+    params:
+      - extraction.metric_patterns
+
+  create_document_outline:
+    cmd: python src/stages/create_document_outline.py
+    deps:
+      - src/stages/create_document_outline.py
+      - data/intermediate/basic_content.json
+    outs:
+      - data/intermediate/document_outline.json
+
+  combine_results:
+    cmd: python src/stages/combine_results.py
+    deps:
+      - src/stages/combine_results.py
+      - data/intermediate/basic_content.json
+      - data/intermediate/tables.json
+      - data/intermediate/images.json
+      - data/intermediate/financial_sections.json
+      - data/intermediate/financial_statements.json
+      - data/intermediate/exhibits.json
+      - data/intermediate/financial_metrics.json
+      - data/intermediate/document_outline.json
+    outs:
+      - data/processed/final_results.json
+      - data/processed/summary.json
